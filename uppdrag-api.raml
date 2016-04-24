@@ -1,0 +1,100 @@
+#%RAML 1.0
+traits:
+  key:
+title: Uppdragsregistret
+version: v1
+description: Uppdragsregistret  description
+displayName: Uppdragsregistret displayname
+
+baseUri: http://localhost:8080
+protocols:
+  - HTTP
+  - HTTPS
+types:
+  Uppdrag:
+    description: Entitet för ett uppdrag.
+    properties:
+      id: string
+      uppdrag_typ:
+        enum:
+          - ARKEOLOGISK_FORUNDERSOKNING
+          - ARKEOLOGISK_KONTROLL
+          - ARKEOLOGISK_UNDERSOKNING
+          - ARKELOGISK_UTREDNING
+          - SCHAKT_OVERVAKNING
+      beslut_datum: date
+      diarie_nr: string
+      beslut_giltig_tom_datum: date
+      utforare_organisation_nr: string
+      beslutande_myndighet_organisation_nr: string
+      beslutande_handlaggare_id: string
+      beslutande_handlaggare_namn: string
+/uppdrag:
+  get:
+    description: Returnerar lista av uppdrag.
+    responses:
+      200:
+        body:
+          application/json:
+            type: Uppdrag[]
+  post:
+    description: Resurs som skapar ett nytt KML-uppdrag som omfattas av KML och returnerar en uri till den nya posten.</br>
+        </br>
+    body:
+      application/json:
+        description: Ett KML-uppdrag som ska adderas till uppdragsregistret.
+        type: Uppdrag
+        example:
+          id: "abc123"
+          uppdrag_typ: "ARKEOLOGISK_FORUNDERSOKNING"
+          beslut_datum: "2016-04-04"
+          diarie_nr: "111-222-333"
+          beslut_giltig_tom_datum: "2016-12-31"
+          utforare_organisation_nr: "202100-2346"
+          beslutande_myndighet_organisation_nr: "222134-1234"
+          beslutande_handlaggare_id: "rilar02"
+          beslutande_handlaggare_namn: "Rickard Larsson"
+    responses:
+      201:
+        description:   (Created) Anger att posten skapades.
+            Returnerar relativ uri i response header till posten som skapades. Ex /uppdrag/kml/uuid. Bodyn innehåller objektet som skapades.
+      400:
+        description: (Bad request). Felaktigt indata angavs för posten (typiskt valideringsfel).
+      405:
+        description: (Method not allowed). Inträffar vid auktorisationsfel. Användaren saknar behörighet att utföra operationen.
+      500:
+        description: (Internal server error). Ett oväntat fel inträffade.
+
+  /{id}:
+    description: Endpoint för hantering av enskilda uppdrag.
+    get:
+      description: Returnerar ett uppdrag för angivet uuid.
+      responses:
+        200:
+           description: Returnerar ett uppdrag för angivet uuid.
+
+    put:
+      description: Uppdaterar ett befintligt KML-uppdrag med en komplett post. <br>
+
+      body:
+        application/json:
+          type: Uppdrag
+      responses:
+        200:
+          description: (OK). Posten uppdaterades. Det uppdaterade objektet returneras.
+        400:
+          description: (Bad request). Felaktigt indata angavs för posten (typiskt valideringsfel).
+        405:
+          description: (Method not allowed). Inträffar vid auktorisationsfel. Användaren saknar behörighet att utföra operationen.
+        500:
+          description: (Internal server error). Ett oväntat fel inträffade.
+    patch:
+      description:  Uppdaterar status för ett befintligt KML-uppdrag med angivet patchobjekt. <br>
+        Avsedd att användas av utförare med begränsade behörigheter, dessa ska endast kunna uppdatera status för uppdraget.
+      body:
+        application/json:
+          type: Uppdrag
+    delete:
+      description: "Raderar ett uppdrag"
+      responses:
+        204:
